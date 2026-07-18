@@ -8,8 +8,10 @@ class Livro(TypedDict):
     ano: int
 
 
-def menu() -> None:
-    biblioteca: list[Livro] = []
+Biblioteca = list[Livro]
+
+
+def menu(biblioteca: Biblioteca) -> None:
     while True:
         print("\n=== Biblioteca ===")
         print("1 - Cadastrar livros")
@@ -30,6 +32,8 @@ def menu() -> None:
             listar_livros(biblioteca)
         elif opcao == "3":
             buscar_livro_pelo_titulo(biblioteca)
+        elif opcao == "4":
+            editar_livro(biblioteca)
         elif opcao == "99":
             print("Até logo!")
             break
@@ -37,7 +41,7 @@ def menu() -> None:
             print("Opção inválida.")
 
 
-def cadastrar_livro(biblioteca: list[Livro]) -> None:
+def cadastrar_livro(biblioteca: Biblioteca) -> None:
     while True:
         titulo = input("Digite o título do livro: ").strip()
         if not titulo:
@@ -60,6 +64,7 @@ def cadastrar_livro(biblioteca: list[Livro]) -> None:
                 "ano": ano,
             }
         )
+        print("Livro cadastrado com sucesso!")
         continuar = (
             input("Deseja cadastrar mais livros? (SIM ou NÃO): ").strip().upper()
         )
@@ -76,7 +81,10 @@ def mostrar_livro(livro: Livro) -> None:
     print("ano", livro["ano"])
 
 
-def listar_livros(biblioteca: list[Livro]) -> None:
+def listar_livros(biblioteca: Biblioteca) -> None:
+    if not biblioteca:
+        print("Nenhum livro cadastrado.")
+        return
     print("=" * 30)
     print("=" * 11, "LIVROS", "=" * 11)
     for livro in biblioteca:
@@ -85,7 +93,7 @@ def listar_livros(biblioteca: list[Livro]) -> None:
     print("=" * 30)
 
 
-def buscar_livro_pelo_titulo(biblioteca: list[Livro]) -> None:
+def buscar_livro_pelo_titulo(biblioteca: Biblioteca) -> None:
     titulo_digitado = input("Digite o titulo: ").strip()
 
     encontrado = False
@@ -101,8 +109,37 @@ def buscar_livro_pelo_titulo(biblioteca: list[Livro]) -> None:
         print("Livro não encontrado.")
 
 
+def editar_livro(biblioteca: Biblioteca) -> None:
+    try:
+        id_int = int(input("Digite o id do livro: "))
+    except ValueError:
+        print("Digite número inteiro.")
+        return
+
+    for livro in biblioteca:
+        if id_int == livro["id"]:
+            titulo = input("Digite o novo título: ").strip()
+            autor = input("Digite o novo autor: ").strip()
+
+            while True:
+                try:
+                    ano = int(input("Digite o novo ano: "))
+                    break
+                except ValueError:
+                    print("Digite número inteiro.")
+
+            livro["titulo"] = titulo
+            livro["autor"] = autor
+            livro["ano"] = ano
+
+            print("Livro atualizado com sucesso!")
+            return
+    print("Livro não encontrado.")
+
+
 def main() -> None:
-    menu()
+    biblioteca: list[Livro] = []
+    menu(biblioteca)
 
 
 if __name__ == "__main__":
