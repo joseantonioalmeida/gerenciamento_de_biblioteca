@@ -1,14 +1,4 @@
-from typing import TypedDict
-
-
-class Livro(TypedDict):
-    id: int
-    titulo: str
-    autor: str
-    ano: int
-
-
-Biblioteca = list[Livro]
+from gerenciamento_de_biblioteca.utils import Biblioteca, mostrar_livro
 
 
 def menu(biblioteca: Biblioteca) -> None:
@@ -36,6 +26,8 @@ def menu(biblioteca: Biblioteca) -> None:
             editar_livro(biblioteca)
         elif opcao == "5":
             remove_livro(biblioteca)
+        elif opcao == "6":
+            empresta_livro(biblioteca)
         elif opcao == "99":
             print("Até logo!")
             break
@@ -64,6 +56,7 @@ def cadastrar_livro(biblioteca: Biblioteca) -> None:
                 "titulo": titulo,
                 "autor": autor,
                 "ano": ano,
+                "disponivel": True,
             }
         )
         print("Livro cadastrado com sucesso!")
@@ -74,13 +67,6 @@ def cadastrar_livro(biblioteca: Biblioteca) -> None:
             continue
 
         break
-
-
-def mostrar_livro(livro: Livro) -> None:
-    print("ID", livro["id"])
-    print("titulo", livro["titulo"])
-    print("autor", livro["autor"])
-    print("ano", livro["ano"])
 
 
 def listar_livros(biblioteca: Biblioteca) -> None:
@@ -152,6 +138,24 @@ def remove_livro(biblioteca: Biblioteca) -> None:
             print("Livro deletado com sucesso.")
             return
 
+    print("Livro não encontrado.")
+
+
+def empresta_livro(biblioteca: Biblioteca) -> None:
+    try:
+        id_int = int(input("Digite o id do livro: "))
+    except ValueError:
+        print("Digite um número inteiro.")
+        return
+
+    for livro in biblioteca:
+        if livro["id"] == id_int:
+            if livro["disponivel"]:
+                livro["disponivel"] = False
+                print("Livro emprestado com sucesso.")
+            else:
+                print("Esse livro já está emprestado.")
+            return
     print("Livro não encontrado.")
 
 
