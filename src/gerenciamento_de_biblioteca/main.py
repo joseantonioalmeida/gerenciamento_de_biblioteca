@@ -1,4 +1,4 @@
-from gerenciamento_de_biblioteca.utils import Biblioteca, mostrar_livro
+from gerenciamento_de_biblioteca.utils import Biblioteca, ler_id, mostrar_livro
 
 
 def menu(biblioteca: Biblioteca) -> None:
@@ -25,9 +25,11 @@ def menu(biblioteca: Biblioteca) -> None:
         elif opcao == "4":
             editar_livro(biblioteca)
         elif opcao == "5":
-            remove_livro(biblioteca)
+            remover_livro(biblioteca)
         elif opcao == "6":
-            empresta_livro(biblioteca)
+            emprestar_livro(biblioteca)
+        elif opcao == "7":
+            devolver_livro(biblioteca)
         elif opcao == "99":
             print("Até logo!")
             break
@@ -98,10 +100,8 @@ def buscar_livro_pelo_titulo(biblioteca: Biblioteca) -> None:
 
 
 def editar_livro(biblioteca: Biblioteca) -> None:
-    try:
-        id_int = int(input("Digite o id do livro: "))
-    except ValueError:
-        print("Digite número inteiro.")
+    id_int = ler_id()
+    if id_int is None:
         return
 
     for livro in biblioteca:
@@ -125,11 +125,9 @@ def editar_livro(biblioteca: Biblioteca) -> None:
     print("Livro não encontrado.")
 
 
-def remove_livro(biblioteca: Biblioteca) -> None:
-    try:
-        id_int = int(input("Digite o id do livro: "))
-    except ValueError:
-        print("Digite um número inteiro.")
+def remover_livro(biblioteca: Biblioteca) -> None:
+    id_int = ler_id()
+    if id_int is None:
         return
 
     for livro in biblioteca:
@@ -141,11 +139,9 @@ def remove_livro(biblioteca: Biblioteca) -> None:
     print("Livro não encontrado.")
 
 
-def empresta_livro(biblioteca: Biblioteca) -> None:
-    try:
-        id_int = int(input("Digite o id do livro: "))
-    except ValueError:
-        print("Digite um número inteiro.")
+def emprestar_livro(biblioteca: Biblioteca) -> None:
+    id_int = ler_id()
+    if id_int is None:
         return
 
     for livro in biblioteca:
@@ -155,6 +151,23 @@ def empresta_livro(biblioteca: Biblioteca) -> None:
                 print("Livro emprestado com sucesso.")
             else:
                 print("Esse livro já está emprestado.")
+            return
+    print("Livro não encontrado.")
+
+
+def devolver_livro(biblioteca: Biblioteca) -> None:
+
+    id_int = ler_id()
+    if id_int is None:
+        return
+
+    for livro in biblioteca:
+        if livro["id"] == id_int:
+            if not livro["disponivel"]:
+                livro["disponivel"] = True
+                print("Livro devolvido com sucesso.")
+            else:
+                print("Esse livro está disponível.")
             return
     print("Livro não encontrado.")
 

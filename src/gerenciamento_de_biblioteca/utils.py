@@ -18,3 +18,11 @@ def mostrar_livro(livro: Livro) -> None:
     print("Autor: ", livro["autor"])
     print("Ano: ", livro["ano"])
     print("Disponível: ", "Sim" if livro["disponivel"] else "Não")
+
+
+def ler_id() -> int | None:
+    try:
+        return int(input("Digite o id do livro:"))
+    except ValueError:
+        print("Digite um número inteiro.")
+        return None
