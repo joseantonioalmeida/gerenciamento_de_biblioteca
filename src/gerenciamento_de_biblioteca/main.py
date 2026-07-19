@@ -34,6 +34,8 @@ def menu(biblioteca: Biblioteca) -> None:
             buscar_livro_pelo_titulo(biblioteca)
         elif opcao == "4":
             editar_livro(biblioteca)
+        elif opcao == "5":
+            remove_livro(biblioteca)
         elif opcao == "99":
             print("Até logo!")
             break
@@ -58,7 +60,7 @@ def cadastrar_livro(biblioteca: Biblioteca) -> None:
 
         biblioteca.append(
             {
-                "id": len(biblioteca) + 1,
+                "id": max((livro["id"] for livro in biblioteca), default=0) + 1,
                 "titulo": titulo,
                 "autor": autor,
                 "ano": ano,
@@ -137,8 +139,24 @@ def editar_livro(biblioteca: Biblioteca) -> None:
     print("Livro não encontrado.")
 
 
+def remove_livro(biblioteca: Biblioteca) -> None:
+    try:
+        id_int = int(input("Digite o id do livro: "))
+    except ValueError:
+        print("Digite um número inteiro.")
+        return
+
+    for livro in biblioteca:
+        if livro["id"] == id_int:
+            biblioteca.remove(livro)
+            print("Livro deletado com sucesso.")
+            return
+
+    print("Livro não encontrado.")
+
+
 def main() -> None:
-    biblioteca: list[Livro] = []
+    biblioteca: Biblioteca = []
     menu(biblioteca)
 
 
