@@ -1,8 +1,12 @@
 from gerenciamento_de_biblioteca.utils import (
     Biblioteca,
+    ler_ano,
+    ler_autor,
+    ler_titulo,
     mostrar_livro,
     mostrar_menu,
     obter_livro,
+    titulo_existente,
 )
 
 
@@ -35,37 +39,23 @@ def menu(biblioteca: Biblioteca) -> None:
 
 
 def cadastrar_livro(biblioteca: Biblioteca) -> None:
-    while True:
-        titulo = input("Digite o título do livro: ").strip()
-        if not titulo:
-            continue
-        autor = input("Digite o autor do livro: ").strip()
-        if not autor:
-            continue
+    titulo = ler_titulo()
+    if titulo_existente(biblioteca, titulo):
+        print("Esse título já existe.")
+        return
+    autor = ler_autor()
+    ano = ler_ano()
 
-        try:
-            ano = int(input("Digite o ano do livro: "))
-        except ValueError:
-            print("Digite um ano válido.")
-            continue
-
-        biblioteca.append(
-            {
-                "id": max((livro["id"] for livro in biblioteca), default=0) + 1,
-                "titulo": titulo,
-                "autor": autor,
-                "ano": ano,
-                "disponivel": True,
-            }
-        )
-        print("Livro cadastrado com sucesso!")
-        continuar = (
-            input("Deseja cadastrar mais livros? (SIM ou NÃO): ").strip().upper()
-        )
-        if continuar.startswith("S"):
-            continue
-
-        break
+    biblioteca.append(
+        {
+            "id": max((livro["id"] for livro in biblioteca), default=0) + 1,
+            "titulo": titulo,
+            "autor": autor,
+            "ano": ano,
+            "disponivel": True,
+        }
+    )
+    print("Livro cadastrado com sucesso!")
 
 
 def listar_livros(biblioteca: Biblioteca) -> None:
@@ -101,14 +91,12 @@ def editar_livro(biblioteca: Biblioteca) -> None:
     if livro is None:
         return
 
-    while True:
-        titulo = input("Digite o novo título: ").strip()
-        autor = input("Digite o novo autor: ").strip()
-        try:
-            ano = int(input("Digite o novo ano: "))
-            break
-        except ValueError:
-            print("Digite número inteiro.")
+    titulo = ler_titulo()
+    if titulo_existente(biblioteca, titulo, livro["id"]):
+        print("Esse título já existe.")
+        return
+    autor = ler_autor()
+    ano = ler_ano()
 
     livro["titulo"] = titulo
     livro["autor"] = autor

@@ -61,3 +61,38 @@ def obter_livro(biblioteca: Biblioteca) -> Livro | None:
         return None
 
     return livro
+
+
+def ler_titulo() -> str:
+    while True:
+        titulo = input("Título: ").strip()
+        if titulo:
+            return titulo
+        print("Digite o título.")
+
+
+def ler_autor() -> str:
+    while True:
+        autor = input("Autor: ").strip()
+        if autor:
+            return autor
+        print("Digite o autor.")
+
+
+def ler_ano() -> int:
+    while True:
+        try:
+            return int(input("Ano: "))
+        except ValueError:
+            print("Somente um ano válido.")
+
+
+def titulo_existente(
+    biblioteca: Biblioteca,
+    titulo: str,
+    ignorar_id: int | None = None,
+) -> bool:
+    return any(
+        livro["titulo"].lower() == titulo.lower() and livro["id"] != ignorar_id
+        for livro in biblioteca
+    )
