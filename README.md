@@ -1,97 +1,123 @@
-# Sistema de Gerenciamento de biblitoteca
+# Sistema de Gerenciamento de Biblioteca
 
-**É um projeto utilizando apenas python**
+Aplicação em linha de comando desenvolvida em Python para gerenciar um acervo de livros de forma simples, organizada e eficiente.
 
-## Sobre
+## Visão Geral
 
-Este projeto serve como um esqueleto moderno para projetos Python utilizando:
+Este projeto foi criado para oferecer um sistema básico de biblioteca com funcionalidades de cadastro, listagem, busca, edição, remoção, empréstimo e devolução de livros. A interface é interativa e executada diretamente no terminal.
+
+## Funcionalidades
+
+- Cadastrar novos livros
+- Listar todos os livros cadastrados
+- Buscar livros por título
+- Editar informações de um livro existente
+- Remover livros do acervo
+- Emprestar livros
+- Devolver livros
+- Exibir quantidade total, disponível e emprestada
+
+## Tecnologias Utilizadas
 
 - Python 3.14
-- Ambiente virtual ([uv](https://docs.astral.sh/uv/getting-started/))
-- Lint e formatação com [Ruff](https://github.com/astral-sh/ruff)
-- Tipagem estática e Lint com Pylance e [Pyright](https://github.com/microsoft/pyright)
+- [uv](https://docs.astral.sh/uv/) para gerenciamento do ambiente virtual e dependências
+- [Ruff](https://github.com/astral-sh/ruff) para lint e formatação
+- [Pyright](https://github.com/microsoft/pyright) para análise estática de tipos
+- [Pytest](https://pytest.org/) para testes
 
----
-## Gerenciando tudo com o uv
+## Requisitos
 
-[uv](https://docs.astral.sh/uv/getting-started/) é uma ferramenta que promete bastante. Sua intenção é substituir praticamente todas as outras ferramentas: pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv, e outras... Até agora tem cumprido tudo com perfeição. Além disso, é uma ferramenta extremamente rápida, escrita em Rust.
+- Python 3.14 ou superior
+- [uv](https://docs.astral.sh/uv/getting-started/) instalado no sistema
 
-```sh
-# Instalação do uv (Windows, Linux, Mac)
-# Windows PowerShell:
-iwr https://astral.sh/uv/install.ps1 -useb | iex
+## Instalação
 
-# Linux/macOS (curl)
-curl -LsSf https://astral.sh/uv/install.sh | sh
+Clone o repositório e acesse a pasta do projeto:
+
+```bash
+git clone <https://github.com/joseantonioalmeida/gerenciamento_de_biblioteca>
+cd gerenciamento_de_biblioteca
 ```
 
-```sh
-# Cria o projeto completo
-diretório: uv init nome-do-projeto
+Crie e configure o ambiente virtual com o comando abaixo:
 
-# Ou inicializa dentro de um projeto existente:
-uv init
-```
-
-```sh
-# Instala Python, cria venv e instala dependências em 1 comando
+```bash
 uv sync
 ```
 
-```sh
-# Instala pacotes
-uv add requests ruff pyright
+Isso irá instalar as dependências definidas no projeto e preparar o ambiente para execução.
 
-# Remove pacotes
-uv remove requests
+## Execução
 
-# Requerimentos via requirements.txt
-uv add -r requirements.txt
-```
-
-```sh
-# Executa scripts Python sem ativar venv
-uv run src/main.py
-
-# Instala ferramentas como ruff ou pyright globalmente
-uv tool install ruff
-uvx ruff
-uv tool uninstall ruff
-```
----
-
-## Configuração do Git
+Você pode executar a aplicação de duas formas:
 
 ```bash
-# Inicia o repositório
-git init # Não precisa fazer isso se a uv já fez
-
-# Configura usuário global
-git config --global user.name "Seu Nome"
-git config --global user.email "seu@email.com"
-
-# Padroniza branches para 'main'
-git config --global init.defaultBranch main
-git branch -m main
-
-# Padroniza finais de linha para multiplataforma
-git config --global core.autocrlf input
-git config --global core.eol lf
-
-git config --list --global
-
-# Primeiro commit
-git add .
-git commit -m "initial"
-
-# Configurar o repositório
-git remote add origin URL_REPO_SSH
-git push origin main -u
-
-# Nos próximos
-git add .
-git commit -m "MENSAGEM"
-git push
+uv run biblioteca
 ```
 
----
+ou
+
+```bash
+uv run python -m gerenciamento_de_biblioteca.main
+```
+
+Ao iniciar, o sistema exibirá um menu com as opções disponíveis.
+
+## Menu da Aplicação
+
+As principais opções do sistema são:
+
+1. Cadastrar livro
+2. Listar livros
+3. Procurar livro por título
+4. Editar livro
+5. Remover livro
+6. Emprestar livro
+7. Devolver livro
+8. Mostrar quantidade de livros
+99. Sair
+
+## Estrutura do Projeto
+
+```text
+.
+├── pyproject.toml
+├── README.md
+├── src/
+│   └── gerenciamento_de_biblioteca/
+│       ├── __init__.py
+│       ├── main.py
+│       └── utils.py
+```
+
+### Descrição dos arquivos
+
+- [src/gerenciamento_de_biblioteca/main.py](src/gerenciamento_de_biblioteca/main.py): contém a lógica principal do menu e as operações da aplicação.
+- [src/gerenciamento_de_biblioteca/utils.py](src/gerenciamento_de_biblioteca/utils.py): reúne funções utilitárias para entrada de dados, validação e exibição de informações.
+- [src/gerenciamento_de_biblioteca/__init__.py](src/gerenciamento_de_biblioteca/__init__.py): arquivo de inicialização do pacote.
+- [pyproject.toml](pyproject.toml): configurações do projeto, dependências, scripts e ferramentas de qualidade.
+
+## Desenvolvimento
+
+### Verificar lint e formatação
+
+```bash
+uv run ruff check .
+uv run ruff format .
+```
+
+### Verificar tipos
+
+```bash
+uv run pyright
+```
+
+### Executar testes
+
+```bash
+uv run pytest
+```
+
+## Autor
+
+José Antônio Almeida
