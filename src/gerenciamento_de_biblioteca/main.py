@@ -30,6 +30,8 @@ def menu(biblioteca: Biblioteca) -> None:
             emprestar_livro(biblioteca)
         elif opcao == "7":
             devolver_livro(biblioteca)
+        elif opcao == "8":
+            mostrar_quantidade(biblioteca)
         elif opcao == "99":
             print("Até logo!")
             break
@@ -170,6 +172,21 @@ def devolver_livro(biblioteca: Biblioteca) -> None:
                 print("Esse livro está disponível.")
             return
     print("Livro não encontrado.")
+
+
+def mostrar_quantidade(biblioteca: Biblioteca) -> None:
+    print("=" * 30)
+    total_de_livros = len(biblioteca)
+    qtd_disponivel = sum(1 for livro in biblioteca if livro["disponivel"])
+    qtd_emprestado = total_de_livros - qtd_disponivel
+
+    print(
+        f"""TOTAL DE LIVROS
+        Total: {total_de_livros}
+        Disponíveis: {qtd_disponivel}
+        Emprestados: {qtd_emprestado}"""
+    )
+    print("=" * 30)
 
 
 def main() -> None:
