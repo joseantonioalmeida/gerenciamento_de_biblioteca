@@ -2,6 +2,16 @@ from gerenciamento_de_biblioteca.utils import Biblioteca, ler_id, mostrar_livro
 
 
 def menu(biblioteca: Biblioteca) -> None:
+    acoes = {
+        "1": cadastrar_livro,
+        "2": listar_livros,
+        "3": buscar_livro_pelo_titulo,
+        "4": editar_livro,
+        "5": remover_livro,
+        "6": emprestar_livro,
+        "7": devolver_livro,
+        "8": mostrar_quantidade,
+    }
     while True:
         print("\n=== Biblioteca ===")
         print("1 - Cadastrar livros")
@@ -16,25 +26,14 @@ def menu(biblioteca: Biblioteca) -> None:
 
         opcao = input("Escolha: ").strip()
 
-        if opcao == "1":
-            cadastrar_livro(biblioteca)
-        elif opcao == "2":
-            listar_livros(biblioteca)
-        elif opcao == "3":
-            buscar_livro_pelo_titulo(biblioteca)
-        elif opcao == "4":
-            editar_livro(biblioteca)
-        elif opcao == "5":
-            remover_livro(biblioteca)
-        elif opcao == "6":
-            emprestar_livro(biblioteca)
-        elif opcao == "7":
-            devolver_livro(biblioteca)
-        elif opcao == "8":
-            mostrar_quantidade(biblioteca)
-        elif opcao == "99":
+        if opcao == "99":
             print("Até logo!")
             break
+        funcao_escolhida = acoes.get(opcao)
+
+        if funcao_escolhida:
+            # executa a função
+            funcao_escolhida(biblioteca)
         else:
             print("Opção inválida.")
 
