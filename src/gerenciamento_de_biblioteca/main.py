@@ -1,16 +1,23 @@
+from typing import TYPE_CHECKING
+
+from sqlalchemy import select
+
+from gerenciamento_de_biblioteca.database import get_session
+from gerenciamento_de_biblioteca.models import Livro
 from gerenciamento_de_biblioteca.utils import (
-    Biblioteca,
     ler_ano,
     ler_autor,
     ler_titulo,
     mostrar_livro,
     mostrar_menu,
     obter_livro,
-    titulo_existente,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
 
-def menu(biblioteca: Biblioteca) -> None:
+
+def menu(session: Session) -> None:
     acoes = {
         "1": cadastrar_livro,
         "2": listar_livros,
@@ -33,115 +40,132 @@ def menu(biblioteca: Biblioteca) -> None:
 
         if funcao_escolhida:
             # executa a função
-            funcao_escolhida(biblioteca)
+            funcao_escolhida(session)
         else:
             print("Opção inválida.")
 
 
-def cadastrar_livro(biblioteca: Biblioteca) -> None:
+def cadastrar_livro(session: Session) -> None:
     titulo = ler_titulo()
-    if titulo_existente(biblioteca, titulo):
-        print("Esse título já existe.")
-        return
     autor = ler_autor()
     ano = ler_ano()
 
-    biblioteca.append(
-        {
-            "id": max((livro["id"] for livro in biblioteca), default=0) + 1,
-            "titulo": titulo,
-            "autor": autor,
-            "ano": ano,
-            "disponivel": True,
-        }
+    db_livro = session.scalar(select(Livro).where(Livro.titulo == titulo))
+
+    if db_livro:
+        print("Livro já cadastrado.")
+        return
+
+    db_livro = Livro(
+        titulo=titulo,
+        autor=autor,
+        ano=ano,
     )
+
+    session.add(db_livro)
+    session.commit()
+
     print("Livro cadastrado com sucesso!")
 
 
-def listar_livros(biblioteca: Biblioteca) -> None:
-    if not biblioteca:
+def listar_livros(session: Session) -> None:
+    livros = session.scalars(select(Livro)).all()
+    if not livros:
         print("Nenhum livro cadastrado.")
         return
     print("=" * 30)
     print("=" * 11, "LIVROS", "=" * 11)
-    for livro in biblioteca:
+    for livro in livros:
         mostrar_livro(livro)
         print("-" * 30)
     print("=" * 30)
 
 
-def buscar_livro_pelo_titulo(biblioteca: Biblioteca) -> None:
+def buscar_livro_pelo_titulo(session: Session) -> None:
     titulo_digitado = input("Digite o titulo: ").strip()
 
-    encontrado = False
-    for livro in biblioteca:
-        if titulo_digitado.lower() in livro["titulo"].lower():
-            encontrado = True
+    livros = session.scalars(
+        select(Livro).where(Livro.titulo.ilike(f"{titulo_digitado}%"))
+    ).all()
 
-            print("-" * 30)
-            mostrar_livro(livro)
+    if not livros:
+        print("Livro não encontrado.")
+        return
 
     print("-" * 30)
-    if not encontrado:
-        print("Livro não encontrado.")
+    for livro in livros:
+        mostrar_livro(livro)
+
+    print("-" * 30)
 
 
-def editar_livro(biblioteca: Biblioteca) -> None:
-    livro = obter_livro(biblioteca)
+def editar_livro(session: Session) -> None:
+    livro = obter_livro(session)
     if livro is None:
         return
 
     titulo = ler_titulo()
-    if titulo_existente(biblioteca, titulo, livro["id"]):
-        print("Esse título já existe.")
+    titulo_existente = session.scalar(
+        select(Livro).where(Livro.titulo == titulo, Livro.id != livro.id)
+    )
+    if titulo_existente:
+        print("Já existe um livro com esse Título.")
         return
+
     autor = ler_autor()
     ano = ler_ano()
 
-    livro["titulo"] = titulo
-    livro["autor"] = autor
-    livro["ano"] = ano
+    livro.titulo = titulo
+    livro.autor = autor
+    livro.ano = ano
+
+    session.commit()
 
     print("Livro atualizado com sucesso!")
 
 
-def remover_livro(biblioteca: Biblioteca) -> None:
-    livro = obter_livro(biblioteca)
+def remover_livro(session: Session) -> None:
+    livro = obter_livro(session)
     if livro is None:
         return
 
-    biblioteca.remove(livro)
+    session.delete(livro)
+    session.commit()
     print("Livro deletado com sucesso.")
 
 
-def emprestar_livro(biblioteca: Biblioteca) -> None:
-    livro = obter_livro(biblioteca)
+def emprestar_livro(session: Session) -> None:
+    livro = obter_livro(session)
     if livro is None:
         return
 
-    if livro["disponivel"]:
-        livro["disponivel"] = False
+    if livro.disponivel:
+        livro.disponivel = False
+        session.commit()
         print("Livro emprestado com sucesso.")
     else:
         print("Esse livro já está emprestado.")
 
 
-def devolver_livro(biblioteca: Biblioteca) -> None:
-    livro = obter_livro(biblioteca)
+def devolver_livro(session: Session) -> None:
+    livro = obter_livro(session)
     if livro is None:
         return
 
-    if not livro["disponivel"]:
-        livro["disponivel"] = True
+    if not livro.disponivel:
+        livro.disponivel = True
+        session.commit()
         print("Livro devolvido com sucesso.")
     else:
         print("Esse livro está disponível.")
 
 
-def mostrar_quantidade(biblioteca: Biblioteca) -> None:
+def mostrar_quantidade(session: Session) -> None:
     print("=" * 30)
-    total_de_livros = len(biblioteca)
-    qtd_disponivel = sum(1 for livro in biblioteca if livro["disponivel"])
+    livros = session.scalars(select(Livro)).all()
+
+    total_de_livros = len(livros)
+    qtd_disponivel = sum(1 for livro in livros if livro.disponivel)
     qtd_emprestado = total_de_livros - qtd_disponivel
 
     print(
@@ -154,8 +178,8 @@ def mostrar_quantidade(biblioteca: Biblioteca) -> None:
 
 
 def main() -> None:
-    biblioteca: Biblioteca = []
-    menu(biblioteca)
+    with get_session() as session:
+        menu(session)
 
 
 if __name__ == "__main__":
