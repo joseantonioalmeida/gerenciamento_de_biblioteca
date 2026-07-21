@@ -7,7 +7,7 @@ readme = "README.md"
 license = "MIT"
 authors = [{ name = "José Antônio", email = "joseantonioalmeida217@gmail.com" }]
 requires-python = ">=3.14"
-dependencies = ["python-dotenv>=1.1.0"]
+dependencies = ["python-dotenv>=1.1.0", "sqlalchemy>=2.0.51"]
 
 [project.urls]
 Homepage = "https://github.com/joseantonioalmeida/gerenciamento-de-biblioteca"
@@ -120,7 +120,8 @@ addopts = "-s --color=yes --tb=short"
 # os testes em `tests/` importem os módulos de `src/` sem erros.
 pythonpath = ["src"]
 testpaths = ["tests"]
-async_mode = "auto"
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
 
 
 # ============================
@@ -129,6 +130,11 @@ async_mode = "auto"
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "pytest-cov>=7.1.0",
+]
 
 [tool.setuptools.packages.find]
 # Informa ao setuptools para encontrar os pacotes dentro da pasta 'src'.
