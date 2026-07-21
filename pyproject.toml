@@ -133,6 +133,7 @@ build-backend = "setuptools.build_meta"
 
 [dependency-groups]
 dev = [
+    "alembic>=1.18.5",
     "pytest-cov>=7.1.0",
 ]
 
