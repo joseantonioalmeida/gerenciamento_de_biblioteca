@@ -1,118 +1,131 @@
 # Sistema de Gerenciamento de Biblioteca
 
-Aplicação em linha de comando desenvolvida em Python para gerenciar um acervo de livros de forma simples, organizada e eficiente.
+Aplicação de linha de comando em Python para gerenciar um acervo de livros com persistência local usando SQLite, SQLAlchemy e Alembic.
 
 ## Visão Geral
 
-Este projeto foi criado para oferecer um sistema básico de biblioteca com funcionalidades de cadastro, listagem, busca, edição, remoção, empréstimo e devolução de livros. A interface é interativa e executada diretamente no terminal.
+Este projeto entrega um sistema de biblioteca simples e profissional, com persistência de dados em banco SQLite e controle de esquema por migrações Alembic.
+
+A aplicação oferece cadastro, listagem, busca, edição, exclusão, empréstimo e devolução de livros em um ambiente de terminal.
 
 ## Funcionalidades
 
-- Cadastrar novos livros
-- Listar todos os livros cadastrados
-- Buscar livros por título
-- Editar informações de um livro existente
-- Remover livros do acervo
-- Emprestar livros
-- Devolver livros
-- Exibir quantidade total, disponível e emprestada
+- Persistência de dados com SQLite
+- Mapeamento ORM com SQLAlchemy
+- Controle de esquema com Alembic
+- Cadastro de livros
+- Listagem de livros
+- Busca por título
+- Edição de informações do livro
+- Remoção de livros
+- Empréstimo e devolução
+- Relatórios de livros totais, disponíveis e emprestados
 
 ## Tecnologias Utilizadas
 
 - Python 3.14
-- [uv](https://docs.astral.sh/uv/) para gerenciamento do ambiente virtual e dependências
-- [Ruff](https://github.com/astral-sh/ruff) para lint e formatação
-- [Pyright](https://github.com/microsoft/pyright) para análise estática de tipos
-- [Pytest](https://pytest.org/) para testes
+- SQLite para armazenamento local
+- SQLAlchemy para mapeamento objeto-relacional
+- Alembic para migrações de banco de dados
+- uv para gerenciamento de ambiente e execução
+- Ruff para lint e formatação
+- Pyright para análise estática de tipos
+- Pytest para testes automatizados
 
 ## Requisitos
 
 - Python 3.14 ou superior
-- [uv](https://docs.astral.sh/uv/getting-started/) instalado no sistema
+- uv instalado no sistema
 
 ## Instalação
 
 Clone o repositório e acesse a pasta do projeto:
 
 ```bash
-git clone <https://github.com/joseantonioalmeida/gerenciamento_de_biblioteca>
+git clone https://github.com/joseantonioalmeida/gerenciamento_de_biblioteca
 cd gerenciamento_de_biblioteca
 ```
 
-Crie e configure o ambiente virtual com o comando abaixo:
+Instale as dependências do projeto:
 
 ```bash
 uv sync
 ```
 
-Isso irá instalar as dependências definidas no projeto e preparar o ambiente para execução.
+## Configuração do Banco de Dados
+
+O projeto utiliza o arquivo de banco SQLite `biblioteca.db` na raiz do projeto.
+
+Antes de executar a aplicação, aplique as migrações do Alembic:
+
+```bash
+uv run python -m alembic upgrade head
+```
+
+As migrações estão armazenadas em `migrations/versions/`.
 
 ## Execução
 
-Você pode executar a aplicação de duas formas:
+Execute a aplicação usando o entry point do projeto:
 
 ```bash
 uv run biblioteca
 ```
 
-ou
+ou diretamente:
 
 ```bash
 uv run python -m gerenciamento_de_biblioteca.main
 ```
 
-Ao iniciar, o sistema exibirá um menu com as opções disponíveis.
-
-## Menu da Aplicação
-
-As principais opções do sistema são:
-
-1. Cadastrar livro
-2. Listar livros
-3. Procurar livro por título
-4. Editar livro
-5. Remover livro
-6. Emprestar livro
-7. Devolver livro
-8. Mostrar quantidade de livros
-99. Sair
-
 ## Estrutura do Projeto
 
 ```text
 .
+├── alembic.ini
+├── migrations/
+│   ├── env.py
+│   ├── README
+│   ├── script.py.mako
+│   └── versions/
+│       └── 2c3839e674f5_create_livro_table.py
 ├── pyproject.toml
 ├── README.md
 ├── src/
 │   └── gerenciamento_de_biblioteca/
 │       ├── __init__.py
+│       ├── database.py
 │       ├── main.py
+│       ├── models.py
 │       └── utils.py
 ```
 
-### Descrição dos arquivos
+## Descrição dos arquivos
 
-- [src/gerenciamento_de_biblioteca/main.py](src/gerenciamento_de_biblioteca/main.py): contém a lógica principal do menu e as operações da aplicação.
-- [src/gerenciamento_de_biblioteca/utils.py](src/gerenciamento_de_biblioteca/utils.py): reúne funções utilitárias para entrada de dados, validação e exibição de informações.
-- [src/gerenciamento_de_biblioteca/__init__.py](src/gerenciamento_de_biblioteca/__init__.py): arquivo de inicialização do pacote.
-- [pyproject.toml](pyproject.toml): configurações do projeto, dependências, scripts e ferramentas de qualidade.
+- `src/gerenciamento_de_biblioteca/main.py`: ponto de entrada da aplicação e lógica de menu.
+- `src/gerenciamento_de_biblioteca/database.py`: configuração da conexão SQLite e criação de sessões SQLAlchemy.
+- `src/gerenciamento_de_biblioteca/models.py`: definição do modelo `Livro` com mapeamento ORM.
+- `src/gerenciamento_de_biblioteca/utils.py`: funções auxiliares de entrada e exibição.
+- `migrations/`: arquivos de migração Alembic para versionamento do esquema.
+- `alembic.ini`: configuração do Alembic.
+- `pyproject.toml`: definição do pacote, dependências e ferramentas de desenvolvimento.
 
 ## Desenvolvimento
 
-### Verificar lint e formatação
+### Lint e formatação
 
 ```bash
 uv run ruff check .
 uv run ruff format .
 ```
 
-### Verificar tipos
+### Verificação de tipos
 
 ```bash
 uv run pyright
 ```
 
-### Executar testes
+### Execução de testes
 
 ```bash
 uv run pytest
