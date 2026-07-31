@@ -1,0 +1,52 @@
+services:
+  biblioteca_database:
+    image: postgres:17
+    container_name: biblioteca_db
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: antonio_book
+      POSTGRES_PASSWORD: book333
+      POSTGRES_DB: biblioteca_db
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U antonio_book -d biblioteca_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  biblioteca_api:
+    build: .
+
+    container_name: biblioteca_api
+
+    restart: unless-stopped
+
+    depends_on:
+      biblioteca_database:
+        condition: service_healthy
+
+    environment:
+      DATABASE_URL: postgresql+psycopg://antonio_book:book333@biblioteca_database:5432/biblioteca_db
+      SECRET_KEY: dev-secret-key
+      ALGORITHM: HS256
+      ACESS_TOKEN_EXPIRE_MINUTES: "30"
+
+    ports:
+      - "8000:8000"
+
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=2)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
