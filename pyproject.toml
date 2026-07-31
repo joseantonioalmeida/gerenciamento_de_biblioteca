@@ -2,27 +2,31 @@
 [project]
 name = "gerenciamento-de-biblioteca"
 version = "0.0.1"
-description = "Sistema de gerenciamento de biblioteca desenvolvido com Python3.14"
+description = "Sistema de gerenciamento de biblioteca desenvolvido com Python 3.14"
 readme = "README.md"
 license = "MIT"
 authors = [{ name = "José Antônio", email = "joseantonioalmeida217@gmail.com" }]
 requires-python = ">=3.14"
-dependencies = ["python-dotenv>=1.1.0", "sqlalchemy>=2.0.51"]
+dependencies = [
+    "alembic>=1.18.5",
+    "fastapi[standard]>=0.141.1",
+    "psycopg[binary]>=3.3.4",
+    "pydantic-settings>=2.11.0",
+    "python-dotenv>=1.1.0",
+    "sqlalchemy[asyncio]>=2.0.51",
+]
 
 [project.urls]
 Homepage = "https://github.com/joseantonioalmeida/gerenciamento-de-biblioteca"
 
-[project.optional-dependencies]
-dev = ["ruff", "pyright", "pytest", "pytest-xdist"]
-
 [project.scripts]
-biblioteca = "gerenciamento_de_biblioteca.main:main"
+biblioteca = "gerenciamento_de_biblioteca.main:app"
 
 # ============================
 # Lint e formatação (Ruff)
 # ============================
 [tool.ruff]
-line-length = 88
+line-length = 79
 target-version = "py314"
 fix = true
 show-fixes = true
@@ -40,51 +44,13 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-select = [
-    "ASYNC",
-    "A",
-    "ANN",
-    "B",
-    "BLE",
-    "C4",
-    "C90",
-    "COM",
-    "E",
-    "EM",
-    "ERA",
-    "EXE",
-    "F",
-    "FBT",
-    "FIX",
-    "I",
-    "ICN",
-    "ISC",
-    "Q",
-    "RET",
-    "RSE",
-    "S",
-    "SIM",
-    "SLF",
-    "T10",
-    "T20",
-    "TC",
-    "TD",
-    "TRY",
-    "UP",
-    "W",
-    "YTT",
-    "RUF",
-    "N",
-]
-ignore = ["T201", "COM812"]
-
-[tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["ANN201", "S101"]
+preview = true
+select = ["I", "F", "E", "W", "PL", "PT", "FAST"]
 
 [tool.ruff.format]
+preview = true
 quote-style = "double"
 indent-style = "space"
-line-ending = "lf"
 
 [tool.ruff.lint.isort]
 # Ensina ao Ruff qual é o pacote principal do seu projeto.
@@ -98,7 +64,7 @@ known-first-party = ["gerenciamento_de_biblioteca"]
 [tool.pyright]
 typeCheckingMode = "strict"
 pythonVersion = "3.14"
-include = ["src", 'tests']
+include = ["src", "tests"]
 exclude = [
     "**/venv",
     "**/.venv",
@@ -128,14 +94,11 @@ python_functions = ["test_*"]
 # Build e Setuptools
 # ============================
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
-dev = [
-    "alembic>=1.18.5",
-    "pytest-cov>=7.1.0",
-]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "pyright", "ruff"]
 
 [tool.setuptools.packages.find]
 # Informa ao setuptools para encontrar os pacotes dentro da pasta 'src'.
