@@ -1,10 +1,11 @@
-from typing import Any, Generator
+from contextlib import contextmanager
+from datetime import datetime
 
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
-    AsyncEngine,
     AsyncSession,
     create_async_engine,
 )
@@ -16,9 +17,9 @@ from gerenciamento_de_biblioteca.models import table_registry
 
 
 @pytest.fixture
-def client(session: AsyncSession) -> Generator[TestClient]:
+def client(session: AsyncSession):
 
-    def get_session_override() -> AsyncSession:
+    def get_session_override():
         return session
 
     app.dependency_overrides[get_session] = get_session_override
@@ -28,13 +29,13 @@ def client(session: AsyncSession) -> Generator[TestClient]:
 
 
 @pytest.fixture(scope="session")
-def engine() -> Generator[AsyncEngine, Any, None]:
+def engine():
     with PostgresContainer("postgres:17", driver="psycopg") as postgres:
         yield create_async_engine(postgres.get_connection_url())
 
 
 @pytest_asyncio.fixture
-async def session(engine: Generator[AsyncEngine, Any, None]):
+async def session(engine):
     async with engine.begin() as conn:  # type: ignore
         await conn.run_sync(table_registry.metadata.create_all)  # type: ignore
 
@@ -43,3 +44,28 @@ async def session(engine: Generator[AsyncEngine, Any, None]):
 
     async with engine.begin() as conn:  # type: ignore
         await conn.run_sync(table_registry.metadata.drop_all)  # type: ignore
+
+
+@contextmanager
+def _mock_db_time(*, model, time=None):
+
+    if time is None:
+        time = datetime.now()
+
+    def fake_time_hook(mapper, connection, target):
+        if hasattr(target, "created_at"):
+            target.created_at = time
+
+        if hasattr(target, "updated_at"):
+            target.updated_at = time
+
+    event.listen(model, "before_insert", fake_time_hook)
+
+    yield time
+
+    event.remove(model, "before_insert", fake_time_hook)
+
+
+@pytest.fixture
+def mock_db_time():
+    return _mock_db_time

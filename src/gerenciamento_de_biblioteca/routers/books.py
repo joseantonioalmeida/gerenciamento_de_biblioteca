@@ -15,7 +15,7 @@ from gerenciamento_de_biblioteca.schemas import (
     Message,
 )
 
-router = APIRouter(prefix="/livros", tags=["livros"])
+router = APIRouter(prefix="/books", tags=["books"])
 
 
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: E402
