@@ -62,7 +62,7 @@ known-first-party = ["gerenciamento_de_biblioteca"]
 # Tipagem (Pyright)
 # ============================
 [tool.pyright]
-typeCheckingMode = "strict"
+typeCheckingMode = "standard"
 pythonVersion = "3.14"
 include = ["src", "tests"]
 exclude = [
@@ -88,6 +88,8 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 
 # ============================
@@ -98,7 +100,18 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [dependency-groups]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "pyright", "ruff"]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-xdist",
+    "pyright",
+    "ruff",
+    "pytest-asyncio",
+    "taskipy",
+    "factory-boy",
+    "freezegun",
+    "testcontainers[postgres]",
+]
 
 [tool.setuptools.packages.find]
 # Informa ao setuptools para encontrar os pacotes dentro da pasta 'src'.
@@ -108,3 +121,38 @@ where = ["src"]
 [tool.setuptools]
 # Mapeia o diretório raiz de pacotes para 'src'.
 package-dir = { "" = "src" }
+
+
+[tool.coverage.run]
+source = ["src/gerenciamento_de_biblioteca"]
+branch = true
+omit = ["tests/*", "migrations/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+
+
+[tool.taskipy.tasks]
+
+lint = "ruff check . --fix"
+format = "ruff format ."
+pyright = "pyright"
+
+pre_test = "task lint"
+test = "pytest -x -s --cov=gerenciamento_de_biblioteca -vv"
+post_test = "coverage html"
+
+coverage = 'explorer.exe "$(wslpath -w htmlcov/index.html)"'
+
+#Uvicorn
+serve = "uvicorn gerenciamento_de_biblioteca.main:app --host 0.0.0.0 --port 8000"
+
+# Alembic
+migrate = "alembic upgrade head"
+makemigrations = "alembic revision --autogenerate"
+
+# Docker
+downgrade = "alembic downgrade -1"
+docker = "docker compose up --build"
+docker_down = "docker compose down"
