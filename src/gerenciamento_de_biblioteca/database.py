@@ -1,11 +1,8 @@
-from typing import TYPE_CHECKING
-
-from gerenciamento_de_biblioteca.settings import Settings
-
-if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+
+from gerenciamento_de_biblioteca.settings import Settings
 
 engine = create_async_engine(Settings().DATABASE_URL)  # type:ignore
 

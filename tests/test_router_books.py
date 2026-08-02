@@ -55,22 +55,22 @@ def test_create_book(client, mock_db_time):
 @pytest.mark.asyncio
 async def test_read_books(client, session):
     # Arrange
-    expected_books = 1
+    expected_book = 1
     year = 2026
-    books = BookFactory.create_batch(1, title="FastAPI", author="Jose")
+    book = BookFactory(title="FastAPI", author="Jose")
 
-    session.add_all(books)
+    session.add(book)
     await session.commit()
 
     # ACT
     response = client.get("/books/?title=FastAPI")
 
     # Assert
-    assert len(response.json()["books"]) == expected_books
+    assert len(response.json()["books"]) == expected_book
     assert response.json()["books"][0]["title"] == "FastAPI"
     assert response.json()["books"][0]["author"] == "Jose"
     assert response.json()["books"][0]["year"] == year
-    assert response.json()["books"][0]["id"] == expected_books
+    assert response.json()["books"][0]["id"] == expected_book
 
 
 @pytest.mark.asyncio
@@ -88,8 +88,8 @@ async def test_read_books_without_filter(client, session):
 
 @pytest.mark.asyncio
 async def test_update_book(client, session):
-    book = BookFactory.create_batch(1)
-    session.add_all(book)
+    book = BookFactory()
+    session.add(book)
     await session.commit()
 
     response = client.patch(
@@ -107,6 +107,27 @@ async def test_update_book(client, session):
 
 def test_patch_book_not_db_book(client):
     response = client.patch("/books/999/", json={})
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {"detail": "Book not found."}
+
+
+@pytest.mark.asyncio
+async def test_delete_book(client, session):
+    book = BookFactory()
+    session.add(book)
+    await session.commit()
+
+    response = client.delete("/books/1/")
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        "message": "Book has been deleted successfully."
+    }
+
+
+def test_delete_book_not_db_book(client):
+    response = client.delete("/books/999/")
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {"detail": "Book not found."}
