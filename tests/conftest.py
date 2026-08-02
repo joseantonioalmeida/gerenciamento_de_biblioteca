@@ -36,14 +36,14 @@ def engine():
 
 @pytest_asyncio.fixture
 async def session(engine):
-    async with engine.begin() as conn:  # type: ignore
-        await conn.run_sync(table_registry.metadata.create_all)  # type: ignore
+    async with engine.begin() as conn:
+        await conn.run_sync(table_registry.metadata.create_all)
 
-    async with AsyncSession(engine, expire_on_commit=False) as session:  # pyright: ignore[reportArgumentType]
+    async with AsyncSession(engine, expire_on_commit=False) as session:
         yield session
 
-    async with engine.begin() as conn:  # type: ignore
-        await conn.run_sync(table_registry.metadata.drop_all)  # type: ignore
+    async with engine.begin() as conn:
+        await conn.run_sync(table_registry.metadata.drop_all)
 
 
 @contextmanager
