@@ -84,3 +84,29 @@ async def test_read_books_without_filter(client, session):
 
     assert response.status_code == HTTPStatus.OK
     assert len(response.json()["books"]) == expected_books
+
+
+@pytest.mark.asyncio
+async def test_update_book(client, session):
+    book = BookFactory.create_batch(1)
+    session.add_all(book)
+    await session.commit()
+
+    response = client.patch(
+        "/books/1/",
+        json={
+            "title": "Title Patch",
+            "author": "Jose Patch",
+        },
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json()["title"] == "Title Patch"
+    assert response.json()["author"] == "Jose Patch"
+
+
+def test_patch_book_not_db_book(client):
+    response = client.patch("/books/999/", json={})
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {"detail": "Book not found."}
