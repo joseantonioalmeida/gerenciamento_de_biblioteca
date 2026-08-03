@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 class Message(BaseModel):
@@ -41,3 +41,17 @@ class BookUpdate(BaseModel):
     author: str | None = None
     year: int | None = None
     available: bool | None = None
+
+
+class UserSchema(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+
+
+class UserPublic(BaseModel):
+    id: int
+    username: str
+    email: str
+    created_at: datetime
+    updated_at: datetime
