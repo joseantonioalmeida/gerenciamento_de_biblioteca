@@ -3,6 +3,7 @@ from datetime import datetime
 
 import pytest
 import pytest_asyncio
+from factory import Factory, LazyAttribute, Sequence  # type:ignore
 from fastapi.testclient import TestClient
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
@@ -13,7 +14,19 @@ from testcontainers.postgres import PostgresContainer
 
 from gerenciamento_de_biblioteca.database import get_session
 from gerenciamento_de_biblioteca.main import app
-from gerenciamento_de_biblioteca.models import table_registry
+from gerenciamento_de_biblioteca.models import User, table_registry
+from gerenciamento_de_biblioteca.security import (
+    get_password_hash,  # type:ignore
+)
+
+
+class UserFactory(Factory):
+    class Meta:  # type:ignore
+        model = User
+
+    username = Sequence(lambda n: f"test{n}")
+    email = LazyAttribute(lambda obj: f"{obj.username}@test.com")
+    password = LazyAttribute(lambda obj: f"{obj.username}&53FFW353")
 
 
 @pytest.fixture
@@ -69,3 +82,16 @@ def _mock_db_time(*, model, time=None):
 @pytest.fixture
 def mock_db_time():
     return _mock_db_time
+
+
+@pytest_asyncio.fixture
+async def user(session: AsyncSession) -> User:
+    password = "teste123"
+    user = UserFactory(password=get_password_hash(password))
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+
+    user.clean_password = password
+
+    return user
