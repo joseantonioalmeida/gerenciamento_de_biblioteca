@@ -61,6 +61,12 @@ class UserList(BaseModel):
     users: list[UserPublic]
 
 
+class UserUpdate(BaseModel):
+    username: str | None = None
+    email: EmailStr | None = None
+    password: str | None = None
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str

@@ -13,6 +13,7 @@ from gerenciamento_de_biblioteca.schemas import (
     UserList,
     UserPublic,
     UserSchema,
+    UserUpdate,
 )
 from gerenciamento_de_biblioteca.security import (
     get_current_user,
@@ -89,7 +90,7 @@ async def detail_user(
 )
 async def update_user(
     user_id: int,
-    user: UserSchema,
+    user: UserUpdate,
     session: Session,
     current_user: Current_user,
 ):
