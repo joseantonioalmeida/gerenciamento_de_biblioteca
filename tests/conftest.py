@@ -18,6 +18,7 @@ from gerenciamento_de_biblioteca.models import User, table_registry
 from gerenciamento_de_biblioteca.security import (
     get_password_hash,  # type:ignore
 )
+from gerenciamento_de_biblioteca.settings import Settings
 
 
 class UserFactory(Factory):
@@ -95,3 +96,8 @@ async def user(session: AsyncSession) -> User:
     user.clean_password = password
 
     return user
+
+
+@pytest.fixture
+def settings():
+    return Settings()  # type:ignore
