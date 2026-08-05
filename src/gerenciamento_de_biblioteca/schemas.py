@@ -43,7 +43,6 @@ class BookUpdate(BaseModel):
     title: str | None = None
     author: str | None = None
     year: int | None = None
-    available: bool | None = None
 
 
 # --- USER SCHEMAS ---
