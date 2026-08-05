@@ -37,6 +37,9 @@ Este projeto é uma API moderna desenvolvida em Python 3.14 com foco em async, a
 - `POST /auth/token/`
   - Gera token de acesso JWT a partir de email e senha
   - Retorna `access_token` e `token_type`
+- `POST /auth/refresh-token/`
+  - Atualiza o `access_token` para o usuário autenticado
+  - Retorna um novo `access_token` e `token_type`
 
 ### Usuários
 
@@ -69,6 +72,13 @@ Este projeto é uma API moderna desenvolvida em Python 3.14 com foco em async, a
   - Requer JWT
 - `DELETE /books/{book_id}/`
   - Exclui um livro do usuário autenticado
+  - Requer JWT
+- `POST /books/{book_id}/borrow/`
+  - Empresta um livro para o usuário autenticado
+  - Valida se o livro existe, está disponível e se o usuário não ultrapassou o limite de empréstimos
+  - Requer JWT
+- `POST /books/{book_id}/return/`
+  - Devolve um livro emprestado pelo usuário autenticado
   - Requer JWT
 
 ## Segurança
