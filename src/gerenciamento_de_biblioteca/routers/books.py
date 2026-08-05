@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 
 from gerenciamento_de_biblioteca.database import get_session
-from gerenciamento_de_biblioteca.models import Book
+from gerenciamento_de_biblioteca.models import Book, User
 from gerenciamento_de_biblioteca.schemas import (
     BookList,
     BookPublic,
@@ -14,19 +14,25 @@ from gerenciamento_de_biblioteca.schemas import (
     FilterBook,
     Message,
 )
+from gerenciamento_de_biblioteca.security import get_current_user
 
 router = APIRouter(prefix="/books", tags=["books"])
 
 
 from sqlalchemy.ext.asyncio import AsyncSession  # noqa: E402
 
+Current_user = Annotated[User, Depends(get_current_user)]
 Session = Annotated[AsyncSession, Depends(get_session)]
 
 
 @router.post("/", status_code=HTTPStatus.CREATED, response_model=BookPublic)
-async def create_livro(book: BookSchema, session: Session):
+async def create_livro(
+    book: BookSchema, session: Session, current_user: Current_user
+):
     db_book = await session.scalar(
-        select(Book).where(Book.title == book.title)
+        select(Book).where(
+            Book.title == book.title, Book.user_id == current_user.id
+        )
     )
     if db_book:
         raise HTTPException(
@@ -37,6 +43,7 @@ async def create_livro(book: BookSchema, session: Session):
         title=book.title,
         author=book.author,
         year=book.year,
+        user_id=current_user.id,
     )
 
     session.add(db_book)
@@ -48,7 +55,9 @@ async def create_livro(book: BookSchema, session: Session):
 
 @router.get("/", status_code=HTTPStatus.OK, response_model=BookList)
 async def read_books(
-    session: Session, book_filter: Annotated[FilterBook, Query()]
+    session: Session,
+    book_filter: Annotated[FilterBook, Query()],
+    current_user: Current_user,
 ):
     query = select(Book)
 
@@ -65,8 +74,15 @@ async def read_books(
 @router.patch(
     "/{book_id}/", status_code=HTTPStatus.OK, response_model=BookPublic
 )
-async def patch_book(book_id: int, session: Session, book: BookUpdate):
-    db_book = await session.scalar(select(Book).where(Book.id == book_id))
+async def patch_book(
+    book_id: int,
+    session: Session,
+    book: BookUpdate,
+    current_user: Current_user,
+):
+    db_book = await session.scalar(
+        select(Book).where(Book.id == book_id, Book.user_id == current_user.id)
+    )
 
     if not db_book:
         raise HTTPException(
@@ -86,8 +102,12 @@ async def patch_book(book_id: int, session: Session, book: BookUpdate):
 @router.delete(
     "/{book_id}/", status_code=HTTPStatus.OK, response_model=Message
 )
-async def delete_book(book_id: int, session: Session):
-    db_book = await session.scalar(select(Book).where(Book.id == book_id))
+async def delete_book(
+    book_id: int, session: Session, current_user: Current_user
+):
+    db_book = await session.scalar(
+        select(Book).where(Book.id == book_id, Book.user_id == current_user.id)
+    )
     if not db_book:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail="Book not found."

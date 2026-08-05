@@ -18,6 +18,7 @@ class BookPublic(BaseModel):
     title: str
     author: str
     year: int
+    user_id: int
     available: bool
     created_at: datetime
     updated_at: datetime
