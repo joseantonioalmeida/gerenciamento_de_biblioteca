@@ -74,10 +74,12 @@ def _mock_db_time(*, model, time=None):
             target.updated_at = time
 
     event.listen(model, "before_insert", fake_time_hook)
+    event.listen(model, "before_update", fake_time_hook)
 
     yield time
 
     event.remove(model, "before_insert", fake_time_hook)
+    event.remove(model, "before_update", fake_time_hook)
 
 
 @pytest.fixture
