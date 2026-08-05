@@ -13,8 +13,9 @@ class BookFactory(factory.Factory):  # type:ignore
     title = factory.Faker("text")  # type:ignore
     author = factory.Faker("text")  # type:ignore
     year = 2026
-    user_id = 1
+    user_id = None
     available = True
+    borrower_id = None
 
 
 def test_create_book(client, mock_db_time, user, token):
@@ -37,6 +38,7 @@ def test_create_book(client, mock_db_time, user, token):
             "year": 2026,
             "user_id": user.id,
             "available": True,
+            "borrower_id": None,
             "created_at": time.isoformat(),
             "updated_at": time.isoformat(),
         }
@@ -147,3 +149,148 @@ def test_delete_book_not_db_book(client, token):
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {"detail": "Book not found."}
+
+
+@pytest.mark.asyncio
+async def test_borrow_book(client, user, token, session):
+    book: Book = BookFactory(user_id=user.id)
+    session.add(book)
+    await session.commit()
+    await session.refresh(book)
+
+    response = client.post(
+        f"/books/{book.id}/borrow/",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert not response.json()["available"]
+    assert response.json()["borrower_id"] == user.id
+
+
+def test_book_not_found_for_loan(client, token):
+    response = client.post(
+        "/books/999/borrow/", headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {"detail": "Book not found."}
+
+
+@pytest.mark.asyncio
+async def test_book_is_already_borrowed_another_user(
+    client, session, other_user, token
+):
+    book = BookFactory(
+        available=False, user_id=other_user.id, borrower_id=other_user.id
+    )
+    session.add(book)
+    await session.commit()
+    await session.refresh(book)
+
+    response = client.post(
+        f"/books/{book.id}/borrow/",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert response.json() == {
+        "detail": "Book is already borrowed by another user."
+    }
+
+
+@pytest.mark.asyncio
+async def test_the_number_of_books_borrowed_by_user_exceeds_the_maximum_limit(
+    client, user, other_user, session, token
+):
+    MAX_BORROWED_BOOKS = 3
+
+    books = BookFactory.create_batch(
+        3,
+        user_id=other_user.id,
+        borrower_id=user.id,
+        available=False,
+    )
+
+    session.add_all(books)
+    await session.commit()
+
+    book = BookFactory(user_id=user.id)
+    session.add(book)
+    await session.commit()
+    await session.refresh(book)
+
+    # Expira o cache do 'user' para forçar o sqlalchemy a recarregar
+    # 'borrowed_books' na requisição
+    await session.refresh(user)
+
+    response = client.post(
+        f"/books/{book.id}/borrow/",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert response.json() == {
+        "detail": (
+            f"User cannot borrow more than {MAX_BORROWED_BOOKS} "
+            "books at the same time."
+        )
+    }
+
+
+@pytest.mark.asyncio
+async def test_return_book(client, token, session, user, other_user):
+    book = BookFactory(
+        user_id=other_user.id,
+        borrower_id=user.id,
+        available=False,
+    )
+    session.add(book)
+    await session.commit()
+    await session.refresh(book)
+    await session.refresh(user)
+
+    response = client.post(
+        f"/books/{book.id}/return/",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json()["available"]
+    assert response.json()["borrower_id"] is None
+
+
+def test_return_book_not_found(client, token):
+    response = client.post(
+        "/books/999/return/", headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {
+        "detail": "Book not found or not borrowed by this user."
+    }
+
+
+@pytest.mark.asyncio
+async def test_return_book_borrowed_another_user(
+    client, token, session, user, other_user
+):
+    book = BookFactory(
+        user_id=user.id,
+        borrower_id=other_user.id,
+        available=False,
+    )
+    session.add(book)
+    await session.commit()
+    await session.refresh(book)
+    await session.refresh(user)
+
+    response = client.post(
+        f"/books/{book.id}/return/",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {
+        "detail": "Book not found or not borrowed by this user."
+    }

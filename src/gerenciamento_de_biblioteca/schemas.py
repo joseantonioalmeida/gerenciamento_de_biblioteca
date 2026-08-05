@@ -23,6 +23,7 @@ class BookUserPublic(BaseModel):
     year: int
     user_id: int
     available: bool
+    borrower_id: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

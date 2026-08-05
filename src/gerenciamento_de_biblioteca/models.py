@@ -15,8 +15,14 @@ class User:
     email: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str]
     books: Mapped[list["Book"]] = relationship(
+        foreign_keys="Book.user_id",
         init=False,
         cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    borrowed_books: Mapped[list["Book"]] = relationship(
+        init=False,
+        foreign_keys="Book.borrower_id",
         lazy="selectin",
     )
     created_at: Mapped[datetime] = mapped_column(
@@ -36,6 +42,9 @@ class Book:
     author: Mapped[str]
     year: Mapped[int]
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    borrower_id: Mapped[int | None] = mapped_column(
+        ForeignKey("user.id"), nullable=True
+    )
     available: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()

@@ -25,6 +25,9 @@ Current_user = Annotated[User, Depends(get_current_user)]
 Session = Annotated[AsyncSession, Depends(get_session)]
 
 
+MAX_BORROWED_BOOKS = 3
+
+
 @router.post("/", status_code=HTTPStatus.CREATED, response_model=BookPublic)
 async def create_livro(
     book: BookSchema, session: Session, current_user: Current_user
@@ -44,6 +47,7 @@ async def create_livro(
         author=book.author,
         year=book.year,
         user_id=current_user.id,
+        borrower_id=None,
     )
 
     session.add(db_book)
@@ -117,3 +121,75 @@ async def delete_book(
     await session.commit()
 
     return {"message": "Book has been deleted successfully."}
+
+
+@router.post(
+    "/{book_id}/borrow/", status_code=HTTPStatus.OK, response_model=BookPublic
+)
+async def borrow_book(
+    book_id: int, current_user: Current_user, session: Session
+):
+    db_book = await session.scalar(select(Book).where(Book.id == book_id))
+
+    # Primeiro verifica se o livro existe
+    if not db_book:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail="Book not found.",
+        )
+
+    # Depois verifica se o livro está disponível
+    if not db_book.available:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail="Book is already borrowed by another user.",
+        )
+
+    # Por fim, verifica se a quantidade de livros emprestados pelo user é maior
+    #  que a quantidade máxima.
+    if len(current_user.borrowed_books) >= MAX_BORROWED_BOOKS:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail=(
+                f"User cannot borrow more than {MAX_BORROWED_BOOKS} "
+                "books at the same time."
+            ),
+        )
+
+    db_book.available = False
+    db_book.borrower_id = current_user.id
+
+    session.add(db_book)
+    await session.commit()
+    await session.refresh(db_book)
+
+    return db_book
+
+
+@router.post(
+    "/{book_id}/return/", status_code=HTTPStatus.OK, response_model=BookPublic
+)
+async def return_book(
+    book_id: int, current_user: Current_user, session: Session
+):
+    # Busca o livro emprestado pelo próprio user
+    db_book = await session.scalar(
+        select(Book).where(
+            Book.id == book_id, Book.borrower_id == current_user.id
+        )
+    )
+    if not db_book:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail="Book not found or not borrowed by this user.",
+        )
+
+    # Devolve o livro
+    db_book.available = True
+    db_book.borrower_id = None
+
+    session.add(db_book)
+    await session.commit()
+    await session.refresh(db_book)
+
+    return db_book
