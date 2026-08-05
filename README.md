@@ -30,6 +30,14 @@ Este projeto é uma API moderna desenvolvida em Python 3.14 com foco em async, a
 - Containerização com Docker e Docker Compose
 - Workflow de CI em `.github/workflows/main.yaml`
 
+## Middleware e Tratamento de Exceções
+
+- Logging middleware centralizado para registrar método, rota, status e tempo de processamento
+- Manipulação customizada de `HTTPException` com resposta JSON uniforme
+- Padronização de erros de validação de request (`422 Unprocessable Entity`)
+- Captura global de exceções não tratadas, com log de stack trace e resposta `500 Internal Server Error`
+- Registro dos handlers em `main.py` para manter o aplicativo robusto e consistente
+
 ## Endpoints principais
 
 ### Autenticação
