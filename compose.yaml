@@ -29,12 +29,25 @@ services:
     depends_on:
       biblioteca_database:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
     environment:
       DATABASE_URL: postgresql+psycopg://antonio_book:book333@biblioteca_database:5432/biblioteca_db
+      REDIS_URL: redis://redis:6379/0
     ports:
       - "8000:8000"
+  redis:
+    image: redis:7-alpine
+    container_name: biblioteca_redis
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
   postgres_data:

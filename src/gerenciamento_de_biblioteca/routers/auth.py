@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,8 +10,10 @@ from gerenciamento_de_biblioteca.database import get_session
 from gerenciamento_de_biblioteca.models import User
 from gerenciamento_de_biblioteca.schemas import Token
 from gerenciamento_de_biblioteca.security import (
+    RATE_LIMIT_VALUE,
     create_access_token,
     get_current_user,
+    limiter,
     verify_password,
 )
 
@@ -23,7 +25,9 @@ Current_user = Annotated[User, Depends(get_current_user)]
 
 
 @router.post("/token/", response_model=Token)
+@limiter.limit(RATE_LIMIT_VALUE)
 async def login_for_access_token(
+    request: Request,
     session: Session,
     form_data: OAuthForm,
 ):

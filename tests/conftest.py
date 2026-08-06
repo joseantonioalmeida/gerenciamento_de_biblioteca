@@ -1,3 +1,4 @@
+import os
 from contextlib import contextmanager
 from datetime import datetime
 
@@ -11,6 +12,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from testcontainers.community.postgres import PostgresContainer
+
+os.environ.setdefault("RATE_LIMIT_REQUESTS", "30")
 
 from gerenciamento_de_biblioteca.database import get_session
 from gerenciamento_de_biblioteca.main import app

@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from http import HTTPStatus
 from typing import Annotated
@@ -7,20 +8,36 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jwt import DecodeError, ExpiredSignatureError, decode, encode
 from pwdlib import PasswordHash
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from gerenciamento_de_biblioteca.database import get_session
 from gerenciamento_de_biblioteca.models import User
 from gerenciamento_de_biblioteca.settings import Settings
 
-SECRET_KEY = Settings().SECRET_KEY  # type:ignore
-ALGORITHM = Settings().ALGORITHM  # type:ignore
-ACCESS_TOKEN_EXPIRED_MINUTES = Settings().ACCESS_TOKEN_EXPIRE_MINUTES  # type:ignore
+settings = Settings()  # type:ignore
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRED_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+RATE_LIMIT_REQUESTS = settings.RATE_LIMIT_REQUESTS
+RATE_LIMIT_WINDOW = settings.RATE_LIMIT_WINDOW
 
 pwd_context = PasswordHash.recommended()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token/")
+
+
+def get_rate_limit_key(request: Request) -> str:
+    if os.getenv("PYTEST_CURRENT_TEST"):
+        return "pytest"
+    return get_remote_address(request)
+
+
+limiter = Limiter(key_func=get_rate_limit_key)
+RATE_LIMIT_VALUE = f"{RATE_LIMIT_REQUESTS}/{RATE_LIMIT_WINDOW}"
 
 
 def get_password_hash(password: str) -> str:

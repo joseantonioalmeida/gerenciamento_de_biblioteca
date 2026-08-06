@@ -4,6 +4,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 
+from gerenciamento_de_biblioteca.cache import (
+    get_cache,
+    invalidate_books_cache,
+    set_cache,
+)
 from gerenciamento_de_biblioteca.database import get_session
 from gerenciamento_de_biblioteca.models import Book, User
 from gerenciamento_de_biblioteca.schemas import (
@@ -54,6 +59,8 @@ async def create_livro(
     await session.commit()
     await session.refresh(db_book)
 
+    await invalidate_books_cache()
+
     return db_book
 
 
@@ -63,16 +70,33 @@ async def read_books(
     book_filter: Annotated[FilterBook, Query()],
     current_user: Current_user,
 ):
+    cache_key = (
+        f"books:offset={book_filter.offset}:"
+        f"limit={book_filter.limit}:title={book_filter.title}"
+    )
+    cached_books = await get_cache(cache_key)
+    if cached_books is not None:
+        return cached_books
+
     query = select(Book)
 
     if book_filter.title:
         query = query.filter(Book.title.ilike(f"%{book_filter.title}%"))
 
-    books = await session.scalars(
+    result = await session.scalars(
         query.limit(book_filter.limit).offset(book_filter.offset)
     )
+    books = result.all()
+    response_data = {
+        "books": [
+            BookPublic.model_validate(book).model_dump(mode="json")
+            for book in books
+        ]
+    }
 
-    return {"books": books}
+    await set_cache(cache_key, response_data, expire=300)
+
+    return response_data
 
 
 @router.patch(
@@ -99,6 +123,7 @@ async def patch_book(
     session.add(db_book)
     await session.commit()
     await session.refresh(db_book)
+    await invalidate_books_cache()
 
     return db_book
 
@@ -119,7 +144,7 @@ async def delete_book(
 
     await session.delete(db_book)
     await session.commit()
-
+    await invalidate_books_cache()
     return {"message": "Book has been deleted successfully."}
 
 
@@ -163,6 +188,8 @@ async def borrow_book(
     await session.commit()
     await session.refresh(db_book)
 
+    await invalidate_books_cache()
+
     return db_book
 
 
@@ -191,5 +218,7 @@ async def return_book(
     session.add(db_book)
     await session.commit()
     await session.refresh(db_book)
+
+    await invalidate_books_cache()
 
     return db_book
