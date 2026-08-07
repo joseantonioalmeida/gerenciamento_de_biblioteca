@@ -19,6 +19,7 @@ Este projeto é uma API moderna desenvolvida em Python 3.14 com foco em async, a
 - Ruff para lint e formatação
 - Pyright para análise estática de tipos
 - GitHub Actions para CI
+- OpenTelemetry com Prometheus e Grafana para observabilidade cloud-native
 
 ## Arquitetura e Recursos
 
@@ -121,6 +122,53 @@ Exemplo de resposta do health check:
   }
 }
 ```
+
+## Observabilidade com OpenTelemetry, Prometheus e Grafana
+
+A aplicação incorpora um pipeline completo de observabilidade baseado em padrões cloud-native para monitorar o comportamento da API em tempo real.
+
+### Arquitetura do stack
+
+- O FastAPI é instrumentado com OpenTelemetry.
+- Métricas HTTP e de execução são coletadas automaticamente pelo SDK do OpenTelemetry.
+- O exporter Prometheus expõe os dados em `GET /metrics`.
+- O Prometheus faz o scrape dessas métricas a cada 3 segundos.
+- O Grafana consome os dados do Prometheus para visualização em dashboards.
+
+### Componentes
+
+- `OpenTelemetry`: coleta e exporta métricas de instrumentação.
+- `Prometheus`: armazena e consulta métricas com scraping contínuo.
+- `Grafana`: fornece dashboards interativos e painéis de monitoramento.
+
+### Endpoints e portas
+
+- API principal: `http://localhost:8000`
+- Endpoint de métricas: `http://localhost:8000/metrics`
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000`
+
+### Como executar
+
+```bash
+docker compose up -d
+```
+
+### Acesso ao Grafana
+
+1. Acesse `http://localhost:3000`.
+2. Faça login com `admin` / `JFBruto`.
+3. No menu `Connections > Data Sources > Add data source`, selecione `Prometheus`.
+4. Configure a URL do servidor como `http://prometheus:9090`.
+5. Clique em `Save & test`.
+6. Crie um dashboard e adicione painéis com métricas como `http_server_duration_milliseconds_count` e `http_server_active_requests`.
+
+### Métricas recomendadas
+
+- `http_server_duration_milliseconds_count`
+- `http_server_duration_milliseconds_sum`
+- `http_server_active_requests`
+- `http_server_request_body_size_bytes`
 
 ## Estrutura do projeto
 
