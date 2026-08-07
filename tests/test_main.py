@@ -22,6 +22,13 @@ def test_health_check_should_return_ok_when_database_is_available(
     assert response.json()["status"] == "ok"
 
 
+def test_metrics_endpoint_should_be_available(client) -> None:
+    response = client.get("/metrics")
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.headers["content-type"].startswith("text/plain")
+
+
 @pytest.mark.asyncio
 async def test_get_cache_returns_none_when_redis_is_unavailable(
     monkeypatch,
