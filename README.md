@@ -29,6 +29,9 @@ Este projeto é uma API moderna desenvolvida em Python 3.14 com foco em async, a
 - Migrações de banco com Alembic
 - Containerização com Docker e Docker Compose
 - Workflow de CI em `.github/workflows/main.yaml`
+- Cache Redis para listagens de livros com invalidação automática em operações de escrita
+- Métricas explícitas de cache `hits` e `misses` para observabilidade em tempo real
+- Health check enriquecido com status do banco e do cache
 
 ## Middleware e Tratamento de Exceções
 
@@ -74,6 +77,7 @@ Este projeto é uma API moderna desenvolvida em Python 3.14 com foco em async, a
   - Requer JWT
 - `GET /books/`
   - Lista livros com filtro opcional por `title`, `offset` e `limit`
+  - Usa cache Redis para reduzir leituras repetidas
   - Requer JWT
 - `PATCH /books/{book_id}/`
   - Atualiza um livro do usuário autenticado
@@ -96,6 +100,27 @@ Este projeto é uma API moderna desenvolvida em Python 3.14 com foco em async, a
 - A expiração do token é configurada por `ACCESS_TOKEN_EXPIRE_MINUTES`.
 - `POST /users/` é o único endpoint de usuários acessível sem autenticação.
 - Operações de `users` e `books` exigem o usuário autenticado e restringem atualizações/exclusões ao próprio usuário ou aos próprios livros.
+
+## Cache e observabilidade
+
+- O endpoint `GET /books/` agora utiliza Redis para cache de respostas de listagem.
+- As operações de criação, atualização, exclusão e empréstimo/devolução de livros invalidam o cache para manter os dados consistentes.
+- O módulo de cache mantém contadores de `hits` e `misses` em memória para observabilidade local.
+- O endpoint `GET /health/` retorna o estado do banco de dados e do cache, incluindo `hits`, `misses` e o backend `redis`.
+
+Exemplo de resposta do health check:
+
+```json
+{
+  "status": "ok",
+  "database": "healthy",
+  "cache": {
+    "hits": 3,
+    "misses": 2,
+    "backend": "redis"
+  }
+}
+```
 
 ## Estrutura do projeto
 
